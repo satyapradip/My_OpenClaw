@@ -1,0 +1,21 @@
+# Dependencies — never commit these (huge, auto-generated)
+node_modules/
+
+# Environment variables — contains secret API keys, never commit
+.env
+.env.*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp files written by the execute_python tool
+*.py.tmp
