@@ -172,7 +172,7 @@ Refusals must always:
 ---
 
 # TOOL CALLING FORMAT
-When you call a tool, respond with type "tool_call" and provide params as a JSON object matching the tool's parameter names.
+When you call a tool, respond with type "tool_call", provide the exact tool_name, and set params to a valid JSON-encoded string of the parameter key-value pairs (e.g. "{\"command\":\"echo hi\"}").
 When you have a final answer for the user, respond with type "text".`;
 
 // ── OUTPUT SCHEMA ──────────────────────────────────────────────────────────
@@ -190,8 +190,8 @@ const outputSchema = z.object({
     .object({
       tool_name: z.string().describe("Exact name of the tool to call"),
       params: z
-        .record(z.string(), z.any())
-        .describe("Key-value pairs matching the tool's parameter names"),
+        .string()
+        .describe("JSON-encoded key-value pairs matching the tool's parameter names"),
     })
     .optional()
     .nullable()
@@ -241,8 +241,16 @@ export async function run(userMessage, history = []) {
 
     // ── Agent wants to call a tool ─────────────────────────────────────
     if (output.type === "tool_call") {
-      const { tool_name, params } = output.tool_call;
+      const { tool_name, params: paramsRaw } = output.tool_call;
       const toolFn = TOOLS[tool_name];
+
+      // params is a JSON-encoded string; parse it into an object
+      let params = {};
+      try {
+        params = paramsRaw ? JSON.parse(paramsRaw) : {};
+      } catch {
+        params = {}; // fallback for malformed JSON from the model
+      }
 
       // Log the tool call so the conversation chain is transparent
       const callSummary = `[Tool call: ${tool_name}(${JSON.stringify(params)})]`;
