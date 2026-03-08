@@ -6,6 +6,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// ── HEALTH CHECK ───────────────────────────────────────────────────────────────
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
 // ── IN-MEMORY SESSION STORE ────────────────────────────────────────────────
 // Maps sessionId → conversation history array  (resets on server restart)
 const sessions = new Map();
@@ -40,12 +43,10 @@ app.post("/message", async (req, res) => {
     });
   } catch (err) {
     console.error("Agent error:", err);
-    return res
-      .status(500)
-      .json({
-        error: "Agent encountered an internal error.",
-        detail: err.message,
-      });
+    return res.status(500).json({
+      error: "Agent encountered an internal error.",
+      detail: err.message,
+    });
   }
 });
 
